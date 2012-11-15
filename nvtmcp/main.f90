@@ -368,8 +368,8 @@ integer(4) bl_no
 real(8) glomin
 integer(4) cnkol,ndismol
 real(8) zgran1,zgran2, zdel
-real(8), allocatable:: denssum(:)
-integer(4) densl
+real(8), allocatable:: denssum(:),denssum1(:),denssum2(:)
+integer(4) densl,densl1,densl2
 integer(4) densNo
 end module dannie
 !****************************************************************************
@@ -1246,9 +1246,19 @@ zgran2=KonSt
 zdel=zgran2-zgran1
 print *,'zdel',zdel
 densl=90
+densl1=60
+densl2=30
 allocate(denssum(densl))
+allocate(denssum1(densl1))
+allocate(denssum2(densl2))
 do i=1,densl
     denssum(i)=0.0
+enddo
+do i=1,densl1
+    denssum1(i)=0.0
+enddo
+do i=1,densl2
+    denssum2(i)=0.0
 enddo
 do while (mov<=Ntot+Neqv) !начало шага монте карло
  mov=mov+1 !плюс шаг
@@ -1421,7 +1431,7 @@ if ((mov>Neqv).and.(mod(mov,N*25)==0)) then
  !call xyzanim()
 endif
 
-if (mod(mov,1000)==0) then
+if (mod(mov,50000)==0) then
     call xyzanim()
 endif
 
@@ -5123,24 +5133,42 @@ subroutine densdistr()
 use dannie
 integer(4) densi
 integer(4) denshist
-
+integer(4) denshist1,denshist2
 !print *, 'begin'
 densNo=densNo+1
 !print *,KonSt, zdel
 do densi=1,N
-    denshist=ceiling(z(densi)/zdel*float(densl))
+    denshist=ceiling((z(densi)+KonSt)/zdel*float(densl))
+    denshist1=ceiling((z(densi)+KonSt)/zdel*float(densl1))
+    denshist2=ceiling((z(densi)+KonSt)/zdel*float(densl2))
     if (denshist>densl) then
         print *, 'memeror', denshist, z(densi), zdel
         !pause
     endif
     Denssum(denshist)=denssum(denshist)+1.0
+    Denssum1(denshist1)=denssum1(denshist1)+1.0
+    Denssum2(denshist2)=denssum2(denshist2)+1.0
 enddo
 open (66,file='densdistr.txt')
+open (71,file='densdistr1.txt')
+open (73,file='densdistr2.txt')
 do densi=1,densl
     write(66,'(2f30.15)') (float(densi)-0.5)*zdel/float(densl),&
     & denssum(densi)/float(densNo)/(zdel/float(densl)*KonSt*KonSt)
 enddo
+do densi=1,densl1
+    write(71,'(2f30.15)') (float(densi)-0.5)*zdel/float(densl1),&
+    & denssum1(densi)/float(densNo)/(zdel/float(densl1)*KonSt*KonSt)
+enddo
+do densi=1,densl2
+    write(73,'(2f30.15)') (float(densi)-0.5)*zdel/float(densl2),&
+    & denssum2(densi)/float(densNo)/(zdel/float(densl2)*KonSt*KonSt)
+enddo
+
 close(66)
+close(71)
+close(73)
+
 !print *, 'end'
 
 end subroutine
