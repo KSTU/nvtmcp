@@ -689,6 +689,7 @@ cnkol=0
 ndismol=0
 open(59,file='movie.xyz')
 open(56,file='ndis.txt')
+open(61,file='promovie.xyz')
 !!$OMP PARALLEL
 !!k=OMP_GET_NUM_PROCS()
 !!print *, k
@@ -1418,6 +1419,7 @@ if ((mov>Neqv).and.(mod(mov,N*25)==0)) then
   call calc_y
  endif
  call tors_dist()
+ call xyzprod()
  !call xyzanim()
 endif
 
@@ -1539,6 +1541,7 @@ open(13, file=Nazv3, position='append')
 close(13)
 close(59)
 close(56)
+close(61)
 !print *, 'chemical potential', -Temp*log(sum_mu(1)/float(nom_mu(1)))
 print *, assept
 print *, notassept
@@ -5128,8 +5131,8 @@ integer(4) denshist
 densNo=densNo+1
 !print *,KonSt, zdel
 do densi=1,N
-    denshist=ceiling(z(densi)/zdel*float(densl))
-    if (denshist>densl) then
+    denshist=ceiling((z(densi)+KonSt)/zdel*float(densl))
+    if ((denshist>densl).or.(denshist<0)) then
         print *, 'memeror', denshist, z(densi), zdel
         !pause
     endif
@@ -5142,5 +5145,16 @@ do densi=1,densl
 enddo
 close(66)
 !print *, 'end'
+
+end subroutine
+
+subroutine xyzprod()
+use dannie
+integer(4) xyzi,xyzj,xyzk
+    write(61,'(i5)') N
+    write(61,'(a)') 'comentline'
+do xyzi=1,N
+    write(61, '(a,f10.6,f10.6,f10.6)') labela(1,1),x(xyzi),y(xyzi),z(xyzi)
+enddo
 
 end subroutine
